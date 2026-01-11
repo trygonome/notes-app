@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Notes</title>
+
+    <!-- PWA : permet l'installation sur mobile -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Supabase SDK (depuis CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Section LOGIN (visible si non connecté) -->
+        <div id="auth-section" class="section">
+            <h1>Mes Notes</h1>
+            <p class="subtitle">Connecte-toi pour synchroniser tes notes</p>
+
+            <form id="auth-form">
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="password" id="password" placeholder="Mot de passe" required>
+
+                <div class="auth-buttons">
+                    <button type="submit" id="login-btn">Se connecter</button>
+                    <button type="button" id="signup-btn">Créer un compte</button>
+                </div>
+            </form>
+
+            <p id="auth-error" class="error"></p>
+        </div>
+
+        <!-- Section NOTES (visible si connecté) -->
+        <div id="notes-section" class="section hidden">
+            <header>
+                <h1>Mes Notes</h1>
+                <button id="logout-btn" class="btn-small">Déconnexion</button>
+            </header>
+
+            <!-- Formulaire nouvelle note -->
+            <form id="note-form">
+                <input type="text" id="note-title" placeholder="Titre de la note" required>
+                <textarea id="note-content" placeholder="Contenu..." rows="4" required></textarea>
+                <button type="submit">Ajouter la note</button>
+            </form>
+
+            <!-- Liste des notes -->
+            <div id="notes-list">
+                <!-- Les notes seront injectées ici par JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Script principal -->
+    <script src="app.js"></script>
+</body>
+</html>
