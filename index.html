@@ -255,6 +255,41 @@
         </div>
 
         <!-- ============================================
+             MODAL NOUVEAU MOT DE PASSE
+             ============================================ -->
+        <div id="new-password-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content modal-small">
+                <div class="modal-header">
+                    <h2>Nouveau mot de passe</h2>
+                </div>
+                <form id="new-password-form">
+                    <div class="modal-body">
+                        <p class="modal-text-info">Choisis ton nouveau mot de passe (minimum 6 caractères).</p>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <i data-lucide="lock"></i>
+                                <input type="password" id="new-password" placeholder="Nouveau mot de passe" required minlength="6">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <i data-lucide="lock"></i>
+                                <input type="password" id="confirm-password" placeholder="Confirmer le mot de passe" required minlength="6">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" id="save-password-btn" class="btn btn-primary">
+                            <span class="btn-text">Enregistrer</span>
+                            <span class="btn-loader"><i data-lucide="loader-2"></i></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============================================
              TOAST NOTIFICATIONS
              ============================================ -->
         <div id="toast-container"></div>

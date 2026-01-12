@@ -79,6 +79,13 @@ const closeResetModalBtn = $('#close-reset-modal');
 const cancelResetBtn = $('#cancel-reset');
 const sendResetBtn = $('#send-reset-btn');
 
+// New Password Modal (after recovery)
+const newPasswordModal = $('#new-password-modal');
+const newPasswordForm = $('#new-password-form');
+const newPasswordInput = $('#new-password');
+const confirmPasswordInput = $('#confirm-password');
+const savePasswordBtn = $('#save-password-btn');
+
 // Theme
 const themeToggle = $('#theme-toggle');
 
@@ -100,6 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load theme preference
     loadTheme();
+
+    // Check for password recovery in URL
+    checkPasswordRecovery();
 
     // Check authentication
     checkUser();
@@ -164,6 +174,9 @@ function setupEventListeners() {
     closeResetModalBtn.addEventListener('click', closeResetModal);
     cancelResetBtn.addEventListener('click', closeResetModal);
     resetForm.addEventListener('submit', handleResetPassword);
+
+    // New password modal (after recovery)
+    newPasswordForm.addEventListener('submit', handleNewPassword);
 
     // PWA Install
     installDismiss.addEventListener('click', dismissInstallPrompt);
@@ -341,6 +354,67 @@ async function handleResetPassword(e) {
 
     closeResetModal();
     showToast('Email envoyé ! Vérifie ta boîte mail.', 'success');
+}
+
+// Check if user arrived via password recovery link
+function checkPasswordRecovery() {
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+        // User clicked password recovery link - show new password modal
+        setTimeout(() => {
+            openNewPasswordModal();
+        }, 500);
+
+        // Clean URL
+        history.replaceState(null, '', window.location.pathname);
+    }
+}
+
+function openNewPasswordModal() {
+    newPasswordModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    newPasswordInput.focus();
+    lucide.createIcons();
+}
+
+function closeNewPasswordModal() {
+    newPasswordModal.classList.add('hidden');
+    document.body.style.overflow = '';
+    newPasswordInput.value = '';
+    confirmPasswordInput.value = '';
+}
+
+async function handleNewPassword(e) {
+    e.preventDefault();
+
+    const newPassword = newPasswordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+
+    if (newPassword.length < 6) {
+        showToast('Le mot de passe doit faire au moins 6 caractères', 'warning');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        showToast('Les mots de passe ne correspondent pas', 'warning');
+        return;
+    }
+
+    setButtonLoading(savePasswordBtn, true);
+
+    const { error } = await db.auth.updateUser({
+        password: newPassword
+    });
+
+    setButtonLoading(savePasswordBtn, false);
+
+    if (error) {
+        showToast('Erreur: ' + error.message, 'error');
+        return;
+    }
+
+    closeNewPasswordModal();
+    showToast('Mot de passe modifié avec succès !', 'success');
 }
 
 // ============================================
