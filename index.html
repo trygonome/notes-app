@@ -67,6 +67,10 @@
                             <span class="btn-loader"><i data-lucide="loader-2"></i></span>
                         </button>
                     </div>
+
+                    <button type="button" id="forgot-password-btn" class="btn-text btn-forgot">
+                        Mot de passe oublié ?
+                    </button>
                 </form>
             </div>
         </div>
@@ -214,6 +218,39 @@
                         Supprimer
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             MODAL RESET PASSWORD
+             ============================================ -->
+        <div id="reset-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content modal-small">
+                <div class="modal-header">
+                    <h2>Mot de passe oublié</h2>
+                    <button id="close-reset-modal" class="btn-icon" aria-label="Fermer">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <form id="reset-form">
+                    <div class="modal-body">
+                        <p class="modal-text-info">Entre ton email, tu recevras un lien pour créer un nouveau mot de passe.</p>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <i data-lucide="mail"></i>
+                                <input type="email" id="reset-email" placeholder="Ton email" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="cancel-reset" class="btn btn-secondary">Annuler</button>
+                        <button type="submit" id="send-reset-btn" class="btn btn-primary">
+                            <span class="btn-text">Envoyer</span>
+                            <span class="btn-loader"><i data-lucide="loader-2"></i></span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
 

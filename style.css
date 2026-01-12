@@ -435,6 +435,23 @@ textarea::placeholder {
     margin-top: var(--space-sm);
 }
 
+.btn-forgot {
+    margin-top: var(--space-sm);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.modal-body {
+    padding: 0 var(--space-lg) var(--space-md);
+}
+
+.modal-text-info {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: var(--space-md);
+    line-height: 1.5;
+}
+
 /* ============================================
    NOTES SECTION
    ============================================ */

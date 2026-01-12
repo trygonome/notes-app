@@ -70,6 +70,15 @@ const deleteModal = $('#delete-modal');
 const cancelDeleteBtn = $('#cancel-delete');
 const confirmDeleteBtn = $('#confirm-delete');
 
+// Reset Password Modal
+const resetModal = $('#reset-modal');
+const resetForm = $('#reset-form');
+const resetEmailInput = $('#reset-email');
+const forgotPasswordBtn = $('#forgot-password-btn');
+const closeResetModalBtn = $('#close-reset-modal');
+const cancelResetBtn = $('#cancel-reset');
+const sendResetBtn = $('#send-reset-btn');
+
 // Theme
 const themeToggle = $('#theme-toggle');
 
@@ -148,6 +157,13 @@ function setupEventListeners() {
     deleteModal.querySelector('.modal-backdrop').addEventListener('click', closeDeleteModal);
     cancelDeleteBtn.addEventListener('click', closeDeleteModal);
     confirmDeleteBtn.addEventListener('click', confirmDelete);
+
+    // Reset password modal
+    forgotPasswordBtn.addEventListener('click', openResetModal);
+    resetModal.querySelector('.modal-backdrop').addEventListener('click', closeResetModal);
+    closeResetModalBtn.addEventListener('click', closeResetModal);
+    cancelResetBtn.addEventListener('click', closeResetModal);
+    resetForm.addEventListener('submit', handleResetPassword);
 
     // PWA Install
     installDismiss.addEventListener('click', dismissInstallPrompt);
@@ -281,6 +297,50 @@ function translateAuthError(message) {
         'Anonymous sign-ins are disabled': 'Remplis l\'email et le mot de passe'
     };
     return translations[message] || message;
+}
+
+// Reset Password
+function openResetModal() {
+    resetForm.reset();
+    // Pré-remplir avec l'email déjà saisi si disponible
+    if (emailInput.value) {
+        resetEmailInput.value = emailInput.value;
+    }
+    resetModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    resetEmailInput.focus();
+}
+
+function closeResetModal() {
+    resetModal.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+async function handleResetPassword(e) {
+    e.preventDefault();
+
+    const email = resetEmailInput.value.trim();
+
+    if (!email) {
+        showToast('Entre ton email', 'warning');
+        return;
+    }
+
+    setButtonLoading(sendResetBtn, true);
+
+    const { error } = await db.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin
+    });
+
+    setButtonLoading(sendResetBtn, false);
+
+    if (error) {
+        showToast(translateAuthError(error.message), 'error');
+        return;
+    }
+
+    closeResetModal();
+    showToast('Email envoyé ! Vérifie ta boîte mail.', 'success');
 }
 
 // ============================================
