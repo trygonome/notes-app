@@ -187,6 +187,9 @@ function setupEventListeners() {
 
     // Auth state changes
     db.auth.onAuthStateChange((event, session) => {
+        // Check for password recovery
+        handleAuthStateForRecovery(event);
+
         if (event === 'SIGNED_IN') {
             showNotesSection();
             loadNotes();
@@ -360,13 +363,21 @@ async function handleResetPassword(e) {
 function checkPasswordRecovery() {
     const hash = window.location.hash;
     if (hash && hash.includes('type=recovery')) {
-        // User clicked password recovery link - show new password modal
-        setTimeout(() => {
-            openNewPasswordModal();
-        }, 500);
+        // Store flag - we'll show the modal after Supabase processes the token
+        sessionStorage.setItem('passwordRecovery', 'true');
+    }
+}
 
+// Called when Supabase auth state changes
+function handleAuthStateForRecovery(event) {
+    if (event === 'PASSWORD_RECOVERY' || sessionStorage.getItem('passwordRecovery') === 'true') {
+        sessionStorage.removeItem('passwordRecovery');
         // Clean URL
         history.replaceState(null, '', window.location.pathname);
+        // Show modal after a short delay to ensure session is ready
+        setTimeout(() => {
+            openNewPasswordModal();
+        }, 300);
     }
 }
 
