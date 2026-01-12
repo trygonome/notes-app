@@ -1,57 +1,238 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes Notes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Notes Pro</title>
 
-    <!-- PWA : permet l'installation sur mobile -->
+    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-192.png">
 
     <!-- Styles -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- Supabase SDK (depuis CDN) -->
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="app">
-        <!-- Section LOGIN (visible si non connecté) -->
-        <div id="auth-section" class="section">
-            <h1>Mes Notes</h1>
-            <p class="subtitle">Connecte-toi pour synchroniser tes notes</p>
-
-            <form id="auth-form">
-                <input type="email" id="email" placeholder="Email" required>
-                <input type="password" id="password" placeholder="Mot de passe" required>
-
-                <div class="auth-buttons">
-                    <button type="submit" id="login-btn">Se connecter</button>
-                    <button type="button" id="signup-btn">Créer un compte</button>
+        <!-- ============================================
+             SECTION AUTH
+             ============================================ -->
+        <div id="auth-section" class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <i data-lucide="notebook-pen"></i>
+                    </div>
+                    <h1>Notes Pro</h1>
+                    <p>Synchronise tes notes partout</p>
                 </div>
-            </form>
 
-            <p id="auth-error" class="error"></p>
+                <form id="auth-form">
+                    <div class="input-group">
+                        <i data-lucide="mail"></i>
+                        <input type="email" id="email" placeholder="Email" required autocomplete="email">
+                    </div>
+
+                    <div class="input-group">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="password" placeholder="Mot de passe" required autocomplete="current-password">
+                        <button type="button" id="toggle-password" class="btn-icon" aria-label="Afficher le mot de passe">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </div>
+
+                    <label class="checkbox-group">
+                        <input type="checkbox" id="remember-me" checked>
+                        <span>Se souvenir de moi</span>
+                    </label>
+
+                    <div id="auth-error" class="error-message"></div>
+
+                    <div class="auth-buttons">
+                        <button type="submit" id="login-btn" class="btn btn-primary">
+                            <span class="btn-text">Se connecter</span>
+                            <span class="btn-loader"><i data-lucide="loader-2"></i></span>
+                        </button>
+                        <button type="button" id="signup-btn" class="btn btn-secondary">
+                            <span class="btn-text">Créer un compte</span>
+                            <span class="btn-loader"><i data-lucide="loader-2"></i></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
-        <!-- Section NOTES (visible si connecté) -->
-        <div id="notes-section" class="section hidden">
-            <header>
-                <h1>Mes Notes</h1>
-                <button id="logout-btn" class="btn-small">Déconnexion</button>
+        <!-- ============================================
+             SECTION NOTES
+             ============================================ -->
+        <div id="notes-section" class="notes-container hidden">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-left">
+                    <i data-lucide="notebook-pen" class="header-logo"></i>
+                    <h1>Notes Pro</h1>
+                </div>
+                <div class="header-right">
+                    <button id="theme-toggle" class="btn-icon" aria-label="Changer le thème">
+                        <i data-lucide="sun" class="icon-light"></i>
+                        <i data-lucide="moon" class="icon-dark"></i>
+                    </button>
+                    <button id="logout-btn" class="btn-icon" aria-label="Déconnexion">
+                        <i data-lucide="log-out"></i>
+                    </button>
+                </div>
             </header>
 
-            <!-- Formulaire nouvelle note -->
-            <form id="note-form">
-                <input type="text" id="note-title" placeholder="Titre de la note" required>
-                <textarea id="note-content" placeholder="Contenu..." rows="4" required></textarea>
-                <button type="submit">Ajouter la note</button>
-            </form>
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="search-input" placeholder="Rechercher une note...">
+                    <button id="clear-search" class="btn-icon hidden" aria-label="Effacer la recherche">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="toolbar-actions">
+                    <select id="sort-select" class="select-styled">
+                        <option value="date-desc">Plus récentes</option>
+                        <option value="date-asc">Plus anciennes</option>
+                        <option value="title-asc">Titre A-Z</option>
+                        <option value="title-desc">Titre Z-A</option>
+                    </select>
+                    <button id="new-note-btn" class="btn btn-primary">
+                        <i data-lucide="plus"></i>
+                        <span>Nouvelle note</span>
+                    </button>
+                </div>
+            </div>
 
-            <!-- Liste des notes -->
-            <div id="notes-list">
-                <!-- Les notes seront injectées ici par JavaScript -->
+            <!-- Stats -->
+            <div class="stats-bar">
+                <span id="notes-count">0 notes</span>
+                <span id="pinned-count">0 épinglées</span>
+            </div>
+
+            <!-- Notes List -->
+            <div id="notes-list" class="notes-grid">
+                <!-- Notes injectées ici -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state hidden">
+                <i data-lucide="file-text"></i>
+                <h3>Aucune note</h3>
+                <p>Crée ta première note pour commencer !</p>
+                <button class="btn btn-primary" onclick="openNoteModal()">
+                    <i data-lucide="plus"></i>
+                    Créer une note
+                </button>
+            </div>
+
+            <!-- No Results -->
+            <div id="no-results" class="empty-state hidden">
+                <i data-lucide="search-x"></i>
+                <h3>Aucun résultat</h3>
+                <p>Aucune note ne correspond à ta recherche</p>
+            </div>
+        </div>
+
+        <!-- ============================================
+             MODAL ÉDITION NOTE
+             ============================================ -->
+        <div id="note-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-title">Nouvelle note</h2>
+                    <button id="close-modal" class="btn-icon" aria-label="Fermer">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <form id="note-form">
+                    <input type="hidden" id="note-id">
+
+                    <div class="form-group">
+                        <input type="text" id="note-title" placeholder="Titre de la note" required maxlength="100">
+                        <span class="char-count"><span id="title-count">0</span>/100</span>
+                    </div>
+
+                    <div class="form-group">
+                        <textarea id="note-content" placeholder="Écris ta note ici..." rows="8" required></textarea>
+                        <span class="char-count"><span id="content-count">0</span> caractères</span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Couleur</label>
+                            <div class="color-picker">
+                                <button type="button" class="color-btn active" data-color="default" style="--color: var(--note-default)"></button>
+                                <button type="button" class="color-btn" data-color="red" style="--color: var(--note-red)"></button>
+                                <button type="button" class="color-btn" data-color="orange" style="--color: var(--note-orange)"></button>
+                                <button type="button" class="color-btn" data-color="yellow" style="--color: var(--note-yellow)"></button>
+                                <button type="button" class="color-btn" data-color="green" style="--color: var(--note-green)"></button>
+                                <button type="button" class="color-btn" data-color="blue" style="--color: var(--note-blue)"></button>
+                                <button type="button" class="color-btn" data-color="purple" style="--color: var(--note-purple)"></button>
+                                <button type="button" class="color-btn" data-color="pink" style="--color: var(--note-pink)"></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" id="cancel-btn" class="btn btn-secondary">Annuler</button>
+                        <button type="submit" id="save-btn" class="btn btn-primary">
+                            <i data-lucide="save"></i>
+                            Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============================================
+             MODAL CONFIRMATION SUPPRESSION
+             ============================================ -->
+        <div id="delete-modal" class="modal hidden">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content modal-small">
+                <div class="modal-header">
+                    <h2>Supprimer la note ?</h2>
+                </div>
+                <p class="modal-text">Cette action est irréversible.</p>
+                <div class="modal-footer">
+                    <button id="cancel-delete" class="btn btn-secondary">Annuler</button>
+                    <button id="confirm-delete" class="btn btn-danger">
+                        <i data-lucide="trash-2"></i>
+                        Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             TOAST NOTIFICATIONS
+             ============================================ -->
+        <div id="toast-container"></div>
+
+        <!-- ============================================
+             INSTALL PROMPT (PWA)
+             ============================================ -->
+        <div id="install-prompt" class="install-prompt hidden">
+            <div class="install-content">
+                <i data-lucide="download"></i>
+                <span>Installer l'app sur ton appareil ?</span>
+            </div>
+            <div class="install-actions">
+                <button id="install-dismiss" class="btn-text">Plus tard</button>
+                <button id="install-accept" class="btn btn-primary btn-small">Installer</button>
             </div>
         </div>
     </div>
