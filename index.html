@@ -96,6 +96,21 @@
                 </div>
             </header>
 
+            <!-- Tab Navigation -->
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-tab="notes">
+                    <i data-lucide="notebook-pen"></i>
+                    <span>Notes</span>
+                </button>
+                <button class="tab-btn" data-tab="clipboard">
+                    <i data-lucide="clipboard-list"></i>
+                    <span>Presse-papiers</span>
+                </button>
+            </nav>
+
+            <!-- Tab Content: Notes -->
+            <div id="tab-notes" class="tab-content active">
+
             <!-- Toolbar -->
             <div class="toolbar">
                 <div class="search-box">
@@ -147,6 +162,51 @@
                 <h3>Aucun résultat</h3>
                 <p>Aucune note ne correspond à ta recherche</p>
             </div>
+
+            </div><!-- End tab-notes -->
+
+            <!-- Tab Content: Clipboard -->
+            <div id="tab-clipboard" class="tab-content">
+                <!-- Clipboard Toolbar -->
+                <div class="toolbar">
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="clip-search-input" placeholder="Rechercher dans le presse-papiers...">
+                        <button id="clear-clip-search" class="btn-icon hidden" aria-label="Effacer">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                    <div class="toolbar-actions">
+                        <select id="device-filter" class="select-styled">
+                            <option value="all">Tous les appareils</option>
+                        </select>
+                        <button id="refresh-clips-btn" class="btn btn-secondary">
+                            <i data-lucide="refresh-cw"></i>
+                            <span>Actualiser</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Clips Stats -->
+                <div class="stats-bar">
+                    <span id="clips-count">0 clips</span>
+                    <span id="clips-device">Tous les appareils</span>
+                </div>
+
+                <!-- Clips List -->
+                <div id="clips-list" class="clips-grid">
+                    <!-- Clips injectés ici -->
+                </div>
+
+                <!-- Empty State Clipboard -->
+                <div id="empty-clips" class="empty-state hidden">
+                    <i data-lucide="clipboard"></i>
+                    <h3>Aucun clip</h3>
+                    <p>Les textes copiés sur ton PC apparaîtront ici.</p>
+                    <p class="text-small">Connecte-toi dans l'app Clipboard Manager sur PC pour synchroniser.</p>
+                </div>
+            </div><!-- End tab-clipboard -->
+
         </div>
 
         <!-- ============================================

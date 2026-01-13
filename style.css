@@ -1062,3 +1062,177 @@ textarea::placeholder {
     white-space: nowrap;
     border: 0;
 }
+
+.text-small {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-sm);
+}
+
+/* ============================================
+   TAB NAVIGATION
+   ============================================ */
+
+.tab-nav {
+    display: flex;
+    gap: var(--space-xs);
+    background: var(--bg-tertiary);
+    padding: var(--space-xs);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+}
+
+.tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: 12px var(--space-md);
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+}
+
+.tab-btn.active {
+    color: var(--primary);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-sm);
+}
+
+.tab-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ============================================
+   CLIPBOARD CLIPS
+   ============================================ */
+
+.clips-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+}
+
+.clip-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    transition: all var(--transition-fast);
+}
+
+.clip-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
+}
+
+.clip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.clip-device {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.clip-device svg {
+    width: 14px;
+    height: 14px;
+}
+
+.clip-device.pinned {
+    color: var(--warning);
+}
+
+.clip-date {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+.clip-content {
+    padding: var(--space-md);
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+    max-height: 150px;
+    overflow: hidden;
+    position: relative;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.clip-content::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(transparent, var(--bg-secondary));
+    pointer-events: none;
+}
+
+.clip-content.short::after {
+    display: none;
+}
+
+.clip-actions {
+    display: flex;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+}
+
+.clip-actions .btn {
+    flex: 1;
+    padding: 8px;
+    font-size: 0.8rem;
+}
+
+.clip-actions .btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Responsive clips grid */
+@media (min-width: 640px) {
+    .clips-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .clips-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}

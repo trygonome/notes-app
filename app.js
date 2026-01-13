@@ -16,9 +16,11 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // ============================================
 
 let allNotes = [];
+let allClips = [];
 let currentNoteId = null;
 let noteToDelete = null;
 let deferredInstallPrompt = null;
+let currentDeviceFilter = 'all';
 
 // ============================================
 // DOM ELEMENTS
@@ -96,6 +98,21 @@ const installAccept = $('#install-accept');
 
 // Toast
 const toastContainer = $('#toast-container');
+
+// Tabs
+const tabBtns = $$('.tab-btn');
+const tabNotes = $('#tab-notes');
+const tabClipboard = $('#tab-clipboard');
+
+// Clipboard
+const clipsList = $('#clips-list');
+const clipSearchInput = $('#clip-search-input');
+const clearClipSearchBtn = $('#clear-clip-search');
+const deviceFilter = $('#device-filter');
+const refreshClipsBtn = $('#refresh-clips-btn');
+const clipsCount = $('#clips-count');
+const clipsDevice = $('#clips-device');
+const emptyClips = $('#empty-clips');
 
 // ============================================
 // INITIALIZATION
@@ -181,6 +198,25 @@ function setupEventListeners() {
     // PWA Install
     installDismiss.addEventListener('click', dismissInstallPrompt);
     installAccept.addEventListener('click', acceptInstallPrompt);
+
+    // Tabs
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    // Clipboard
+    if (clipSearchInput) {
+        clipSearchInput.addEventListener('input', debounce(handleClipSearch, 300));
+    }
+    if (clearClipSearchBtn) {
+        clearClipSearchBtn.addEventListener('click', clearClipSearch);
+    }
+    if (deviceFilter) {
+        deviceFilter.addEventListener('change', handleDeviceFilter);
+    }
+    if (refreshClipsBtn) {
+        refreshClipsBtn.addEventListener('click', loadClips);
+    }
 
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboard);
@@ -958,9 +994,210 @@ function handleKeyboard(e) {
     }
 }
 
+// ============================================
+// TABS
+// ============================================
+
+function switchTab(tabName) {
+    // Update tab buttons
+    tabBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
+
+    // Update tab content
+    if (tabNotes) tabNotes.classList.toggle('active', tabName === 'notes');
+    if (tabClipboard) tabClipboard.classList.toggle('active', tabName === 'clipboard');
+
+    // Load clips if switching to clipboard tab
+    if (tabName === 'clipboard' && allClips.length === 0) {
+        loadClips();
+    }
+
+    // Refresh icons
+    lucide.createIcons();
+}
+
+// ============================================
+// CLIPBOARD
+// ============================================
+
+async function loadClips() {
+    if (!clipsList) return;
+
+    clipsList.innerHTML = `
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div>
+    `;
+    if (emptyClips) emptyClips.classList.add('hidden');
+
+    const { data: clips, error } = await db
+        .from('clipboard_history')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Erreur chargement clips:', error);
+        showToast('Erreur de chargement des clips', 'error');
+        clipsList.innerHTML = '';
+        return;
+    }
+
+    allClips = clips || [];
+    updateDeviceFilter();
+    displayClips(allClips);
+    updateClipStats();
+}
+
+function updateDeviceFilter() {
+    if (!deviceFilter) return;
+
+    // Get unique devices
+    const devices = [...new Set(allClips.map(c => c.device_name).filter(Boolean))];
+
+    // Keep current selection
+    const currentValue = deviceFilter.value;
+
+    // Rebuild options
+    deviceFilter.innerHTML = '<option value="all">Tous les appareils</option>';
+    devices.forEach(device => {
+        const option = document.createElement('option');
+        option.value = device;
+        option.textContent = device;
+        deviceFilter.appendChild(option);
+    });
+
+    // Restore selection if still valid
+    if (devices.includes(currentValue) || currentValue === 'all') {
+        deviceFilter.value = currentValue;
+    }
+}
+
+function displayClips(clips) {
+    if (!clipsList) return;
+
+    // Apply device filter
+    let filteredClips = clips;
+    if (currentDeviceFilter !== 'all') {
+        filteredClips = clips.filter(c => c.device_name === currentDeviceFilter);
+    }
+
+    // Apply search filter
+    const searchTerm = clipSearchInput?.value.toLowerCase().trim();
+    if (searchTerm) {
+        filteredClips = filteredClips.filter(c =>
+            c.content.toLowerCase().includes(searchTerm)
+        );
+    }
+
+    // Update UI
+    if (filteredClips.length === 0) {
+        clipsList.innerHTML = '';
+        if (emptyClips) emptyClips.classList.remove('hidden');
+        return;
+    }
+
+    if (emptyClips) emptyClips.classList.add('hidden');
+
+    clipsList.innerHTML = filteredClips.map(clip => createClipCard(clip)).join('');
+    lucide.createIcons();
+}
+
+function createClipCard(clip) {
+    const isShort = clip.content.length < 100;
+    const pinnedClass = clip.is_pinned ? 'pinned' : '';
+    const deviceIcon = clip.is_pinned ? 'pin' : 'monitor';
+
+    return `
+        <div class="clip-card" data-id="${clip.id}">
+            <div class="clip-header">
+                <div class="clip-device ${pinnedClass}">
+                    <i data-lucide="${deviceIcon}"></i>
+                    <span>${escapeHtml(clip.device_name || 'Appareil inconnu')}</span>
+                </div>
+                <span class="clip-date">${formatDate(clip.created_at)}</span>
+            </div>
+            <div class="clip-content ${isShort ? 'short' : ''}">${escapeHtml(clip.content)}</div>
+            <div class="clip-actions">
+                <button class="btn btn-primary btn-small" onclick="copyClip('${clip.id}')">
+                    <i data-lucide="copy"></i>
+                    Copier
+                </button>
+                <button class="btn btn-secondary btn-small" onclick="deleteClip('${clip.id}')">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+async function copyClip(clipId) {
+    const clip = allClips.find(c => c.id === clipId);
+    if (!clip) return;
+
+    try {
+        await navigator.clipboard.writeText(clip.content);
+        showToast('Copie dans le presse-papiers !', 'success');
+    } catch (err) {
+        showToast('Erreur de copie', 'error');
+    }
+}
+
+async function deleteClip(clipId) {
+    const { error } = await db
+        .from('clipboard_history')
+        .delete()
+        .eq('id', clipId);
+
+    if (error) {
+        showToast('Erreur de suppression', 'error');
+        return;
+    }
+
+    showToast('Clip supprime', 'success');
+    loadClips();
+}
+
+function handleClipSearch() {
+    const term = clipSearchInput?.value.trim();
+    if (clearClipSearchBtn) {
+        clearClipSearchBtn.classList.toggle('hidden', !term);
+    }
+    displayClips(allClips);
+}
+
+function clearClipSearch() {
+    if (clipSearchInput) clipSearchInput.value = '';
+    if (clearClipSearchBtn) clearClipSearchBtn.classList.add('hidden');
+    displayClips(allClips);
+}
+
+function handleDeviceFilter() {
+    currentDeviceFilter = deviceFilter?.value || 'all';
+    if (clipsDevice) {
+        clipsDevice.textContent = currentDeviceFilter === 'all'
+            ? 'Tous les appareils'
+            : currentDeviceFilter;
+    }
+    displayClips(allClips);
+}
+
+function updateClipStats() {
+    if (!clipsCount) return;
+
+    let count = allClips.length;
+    if (currentDeviceFilter !== 'all') {
+        count = allClips.filter(c => c.device_name === currentDeviceFilter).length;
+    }
+
+    clipsCount.textContent = `${count} clip${count !== 1 ? 's' : ''}`;
+}
+
 // Make functions globally available for onclick handlers
 window.openNoteModal = openNoteModal;
 window.togglePin = togglePin;
 window.copyNote = copyNote;
 window.downloadNote = downloadNote;
 window.openDeleteModal = openDeleteModal;
+window.copyClip = copyClip;
+window.deleteClip = deleteClip;
